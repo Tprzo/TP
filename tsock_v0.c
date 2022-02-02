@@ -17,7 +17,20 @@ données du réseau */
 #include <stdio.h>
 /* pour la gestion des erreurs */
 #include <errno.h>
-
+void construire_message(char *message, char motif, int lg){
+int i;
+    for(i=0; i>lg ; i++)
+    message =motif;
+    }
+void afficher_message (char *message, int lg){
+    int i;
+    printf("message construit");
+    for (i=0; i>lg ; i++) printf("%c", message[i]);printf("\n");}
+  
+  
+ void source_udp(int num_port, char* host, int lg_msg, int nb_msg);
+ void puits_udp(int num_port, int lg_msg, int nb_msg);   
+    
 void main (int argc, char **argv)
 {
 	int c;
@@ -25,7 +38,14 @@ void main (int argc, char **argv)
 	extern int optind;
 	int nb_message = -1; /* Nb de messages à envoyer ou à recevoir, par défaut : 10 en émission, infini en réception */
 	int source = -1 ; /* 0=puits, 1=source */
-	while ((c = getopt(argc, argv, "pn:s")) != -1) {
+	int protocole=0; /* 0 = TCP 1 = UDP*/
+	int port=htons(atoi(argv[argc-1])); 
+	
+	int lg_msg= 30;
+	char message[lg_msg];
+    char *message;
+    	
+	while ((c = getopt(argc, argv, "pn:su")) != -1) {
 		switch (c) {
 		case 'p':
 			if (source == 1) {
@@ -46,6 +66,9 @@ void main (int argc, char **argv)
 		case 'n':
 			nb_message = atoi(optarg);
 			break;
+		case 'u':
+		    protocole==1 /* tester si le protocle est UDP*/
+		    break;
 
 		default:
 			printf("usage: cmd [-p|-s][-n ##]\n");
@@ -57,10 +80,18 @@ void main (int argc, char **argv)
 		printf("usage: cmd [-p|-s][-n ##]\n");
 		exit(1) ;
 	}
-
-	if (source == 1)
+	
+	if (source == 1) {
+	    char * host= argv[argc-2]; 
+	    if (nb_message == -1) 
+	        nb_message = 10; 
+	}    
+/* creation du socket*/
+	if (source == 1) {
 		printf("on est dans le source\n");
-	else
+		if (protocole == 1) 
+		    source_udp(port, host, lg_msg, nb_message); 
+	} else
 		printf("on est dans le puits\n");
 
 	if (nb_message != -1) {
@@ -77,4 +108,23 @@ void main (int argc, char **argv)
 
 	}
 }
+
+
+void source_udp(int num_port, char* host, int lg_msg, int nb_msg) {
+    // Creation du socket Source emetteur
+    int sockS_UDP;
+    if((sockS_UDP=socket(AF_INET,SOCK_DGRAM,0))==-1){
+        printf("echeck de creqtion du socket\n");
+		exit(1);
+	}
+	
+	//Creation @distante
+	
+	
+	// envoi des données
+	
+	//destruction du socket
+}
+
+
 

@@ -7,9 +7,9 @@ L'objectif principal de la 1ère séance est de développer la v1 de tsock: code
 ### Avancement sur la partie SOURCE UDP
 veuillez cocher les seules cases qui correspondent aux étapes validées.  
 
-[ ] la gestion des options -s, -u,  le nombre et Taille par défaut des messages , nom de la machine destinataire,  numéro de port du puit est opérationnelle
+[x] la gestion des options -s, -u,  le nombre et Taille par défaut des messages , nom de la machine destinataire,  numéro de port du puit est opérationnelle
 
-[ ] la création du socket UDP local et la construction de l'adresse du socket distant est correcte
+[x] la création du socket UDP local et la construction de l'adresse du socket distant est correcte
 
 [ ] l’envoi de  messages en utilisant l'appel système sendto (qui retourne une valeur >0 correspondant à la taille de chaque message envoyé) est fonctionnelle 
 
