@@ -161,6 +161,54 @@ void source_udp(int num_port, char* host, int lg_msg, int nb_msg) {
 }
 
 
-// creation socket
-// 
+void udp_puits(int num_port, int nb_msg, char* host, int lg_msg,char* message){
+  int sockP_UDP;
+  struct sockaddr_in adr_local;//Adresse du socket local
+  struct sockaddr_in adr_distant; //Adresse du socket distant
+  int lg_adr_local = sizeof(adr_local);
+  int lg_adr_distant = sizeof(adr_distant);
+  int taille_max_msg = 30;
+  /* Création d'un socket local*/
+  if ((sockP_UDP = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+	{
+	       	printf("Echec de la creation du socket puits UDP");
+	       	exit(1);
+	}
+	memset((char*)&adr_local, 0, sizeof(adr_local));
+	adr_local.sin_family = AF_INET; //domaine internet
+	adr_local.sin_port = htons(num_port); //num de port
+	adr_local.sin_addr.s_addr = INADDR_ANY; //toutes les adresses IP de la machine
+	//Affectation de l'adresse au socket local à la représentation interne
+	if (bind(sockP_UDP, (struct sockaddr*) &adr_local, lg_adr_local) == -1)
+	{
+		printf("Echec du bind.\n");
+		exit(1);
+	}
+	if (nb_msg == -1){
+			nb_msg = 10;
+            printf("PUITS : lg_mess_lu=%d, port=%d, nb_receptions=infini, TP=udp\n",lg_msg,num_port);
+        } else printf("PUITS : lg_mess_lu=%d, port=%d, nb_receptions=%d, TP=udp\n",lg_msg,num_port,nb_msg);
 
+	while(1){
+		/*Reception des messages et affichage*/
+		for (int i=1; i<=nb_msg; i++)
+		{
+			if (recvfrom(sockP_UDP, message, taille_max_msg, 0, (struct sockaddr*) &adr_distant, (socklen_t *) &lg_adr_distant) == -1)
+			{
+			  	printf("Erreur lors de la reception du message (recvfrom).\n");
+				exit(1);
+			}
+			else
+			{
+				/*Affichage du message recu*/
+				afficher_message(message, lg_msg);
+			}
+		}
+	}
+/*Fermeture du socket et libération de la mémoire*/
+	if (close(sockP_UDP) == -1)	
+	{
+		printf("Echec de destruction du socket");
+		exit(1);
+	}
+}
