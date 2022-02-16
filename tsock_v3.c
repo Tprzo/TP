@@ -27,9 +27,10 @@ void afficher_message (char *message, int lg){
     printf("message construit");
     for (i=0; i<lg ; i++) printf("%c", message[i]);printf("\n");}
   
-  
  void source_udp(int num_port, char* host, int lg_msg, int nb_msg);
  void udp_puits(int num_port, int lg_msg, int nb_msg);   
+ void source_tcp(int num_port, char* host, int lg_msg, int nb_msg);
+ void puits_tcp(int num_port, int lg_msg, int nb_msg);   
     /* M
        m    A    
        m    a     I   
@@ -95,34 +96,95 @@ int main (int argc, char **argv)
 	}    
 /* creation du socket*/
 	if (source == 1) {
-		printf("on est dans le source\n");
-		if (protocole == 1) 
-		    source_udp(port, host, lg_msg, nb_message); 
-	} else {
-		//printf("on est dans le puits\n");
-		if  (protocole == 1) {
-		    udp_puits(port, nb_message, lg_msg); 
-		}
+		printf("on est dans la source\n");
+		if (protocole == 0)
+		    source_tcp(port, host, lg_msg, nb_message); 
+		    else 
+		        source_udp(port, host, lg_msg, nb_message);
+		        }
+    if (source== 0) 
+	    printf("on est dans le puits\n");
+		if  (protocole == 0) {
+		    puits_tcp(port, nb_message, lg_msg);
+		    }else{
+		    udp_puits(port, nb_message, lg_msg);
+		    }
 	}
+	
+	
 
-	/*if (nb_message != -1) {
-		if (source == 1)
-			printf("nb de tampons à envoyer : %d\n", nb_message);
-		else
-			printf("nb de tampons à recevoir : %d\n", nb_message);
-	} else {
-		if (source == 1) {
-			nb_message = 10 ;
-			printf("nb de tampons à envoyer = 10 par défaut\n");
-		} else
-		printf("nb de tampons à envoyer = infini\n");
 
-	}*/
+	
+void source_tcp(int num_port, char* host, int lg_msg, int nb_msg) { 
+    // Creation du socket Source emetteur
+    
+    int sockS_TCP;
+    char motif = 'a';
+    	printf("--- %d \n",lg_msg);
+    if((sockS_TCP=socket(AF_INET,SOCK_STREAM,0))==-1){
+        printf("echeck de creation du socket\n");
+		exit(1);
+	}
+	
+	//Creation @distante
+    struct hostent *hp;
+    struct sockaddr_in adr_distant;
+    int lg_adr_distant=sizeof(adr_distant);
+    memset((char*)& adr_distant,0,sizeof(adr_distant));
+    adr_distant.sin_family=AF_INET;
+    adr_distant.sin_port=num_port;
+    if ((hp = gethostbyname(host))==NULL){
+    printf("erreur gethostbyname\n");
+    exit(1);
+    }
+    memcpy((char*)&(adr_distant.sin_addr.s_addr),
+    hp->h_addr,
+    hp->h_length);
+    /*Demande de connexion*/
+    if(connect(sockS_TCP,(struct sockaddr*) &adr_distant, lg_adr_distant) == -1)
+			{
+				perror("Erreur lors de la demande de la connexion (connect).\n");
+				exit(1);
+			}
+
+			printf("SOURCE : lg_mess_emis=%d, port=%d, nb_envois=%d, TP=tcp, dest=%s\n",lg_msg,num_port,nb_msg,host);
+	// envoi des données
+    char * message = malloc(sizeof(char)*lg_msg); 
+	for (int i=1; i<=nb_msg; i++)
+			{
+				/*Creation du message*/
+				construire_message(message, motif++,lg_msg);
+				afficher_message(message, lg_msg);
+
+				/*Envoi d'un message*/
+				if ((write(sockS_TCP, message, lg_msg)) == -1)
+				{
+					printf("Erreur lors de l'envoi du message (write).\n");
+					exit(1);
+				}
+			}
+	/*Phase de fermeture d'une connexion*/
+			if (shutdown(sockS_TCP, 2) == -1)
+			{
+				printf("Erreur lors de la fermeture de la connexion (shutdown).\n");
+				exit(1);
+			}
+
+			/*Destruction du socket*/
+			if (close(sockS_TCP) == -1)	
+			{
+				printf("Echec de destruction du socket");
+				exit(1);
+			}
+			else
+			{
+				printf("SOURCE : fin\n");
+			}
 }
-    //structures utilisées
 
-    
-    
+void puits_tcp(int num_port, int lg_msg, int nb_msg){
+
+}
 
 void source_udp(int num_port, char* host, int lg_msg, int nb_msg) {
     // Creation du socket Source emetteur
@@ -220,3 +282,6 @@ void udp_puits(int num_port, int nb_msg, int lg_msg){
 		exit(1);
 	}
 }
+
+
+
