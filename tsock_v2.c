@@ -217,6 +217,6 @@ void udp_puits(int num_port, int nb_msg, int lg_msg){
 	if (close(sockP_UDP) == -1)	
 	{
 		printf("Echec de destruction du socket");
-		exit(1); ;; 
+		exit(1);
 	}
 }
