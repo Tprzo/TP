@@ -32,10 +32,10 @@ void afficher_message(char *message, int lg)
 	printf("\n");
 }
 
-void source_udp(int num_port, char *host, int lg_msg, int nb_msg);
+void udp_source(int num_port, char *host, int lg_msg, int nb_msg);
 void udp_puits(int num_port, int lg_msg, int nb_msg);
-void source_tcp(int num_port, char *host, int lg_msg, int nb_msg);
-void puits_tcp(int num_port, int lg_msg, int nb_msg);
+void tcp_source(int num_port, char *host, int lg_msg, int nb_msg);
+void tcp_puits(int num_port, int lg_msg, int nb_msg);
 
 int main(int argc, char **argv)
 {
@@ -48,13 +48,37 @@ int main(int argc, char **argv)
 	int port = htons(atoi(argv[argc - 1]));
 	char *host;
 	int lg_msg = 30;
-	//	char *message;
+	
 	char message[lg_msg];
+	int destinataire;
+	int tcp_bal = 0;
+	//char *message;
+	char *lettreRecue;
+// Structures
+	struct message
+	{
+		char *message;
+		struct message *message_suivante;
+	};
+	struct bal
+	{
+		int num_bal;
+		struct bal *bal_suivante;
+		struct message *lettre;
+	};
+	struct liste
+	{
+		struct bal *first;
+		struct bal *last;
+		struct bal *courant;
+	};
 
 	while ((c = getopt(argc, argv, "pn:su")) != -1)
 	{
 		switch (c)
 		{
+		case 'e' :
+            destinataire = atoi(optarg);
 		case 'p':
 			if (source == 1)
 			{
@@ -72,9 +96,15 @@ int main(int argc, char **argv)
 			}
 			source = 1;
 			break;
-
+		case 'b': 
+			source = 2;
+			break;
 		case 'n':
 			nb_message = atoi(optarg);
+			break;
+		case 'l':
+			lg_msg = atoi(optarg);
+		    printf("lg_mesg = %d\n", lg_msg);
 			break;
 		case 'u':
 			protocole = 1; /* tester si le protocle est UDP*/
@@ -103,15 +133,15 @@ int main(int argc, char **argv)
 	{
 		printf("on est dans la source\n");
 		if (protocole == 0)
-			source_tcp(port, host, lg_msg, nb_message);
+			tcp_source(port, host, lg_msg, nb_message);
 		else
-			source_udp(port, host, lg_msg, nb_message);
+			udp_source(port, host, lg_msg, nb_message);
 	}
 	if (source == 0)
 		printf("on est dans le puits\n");
 	if (protocole == 0)
 	{
-		puits_tcp(port, nb_message, lg_msg);
+		tcp_puits(port, nb_message, lg_msg);
 	}
 	else
 	{
@@ -119,7 +149,7 @@ int main(int argc, char **argv)
 	}
 }
 
-void source_tcp(int num_port, char *host, int lg_msg, int nb_msg)
+void tcp_source(int num_port, char *host, int lg_msg, int nb_msg)
 {
 	// Creation du socket Source emetteur
 
@@ -148,7 +178,7 @@ void source_tcp(int num_port, char *host, int lg_msg, int nb_msg)
 		   hp->h_addr,
 		   hp->h_length);
 	/*Demande de connexion*/
-	if (connect(sockS_TCP, (struct sockaddr *)&adr_distant, lg_adr_distant) == -1)
+	if (connect(sockS_TCP, (struct sockaddr *)&adr_distant, sizeof(struct sockaddr)) == -1)
 	{
 		perror("Erreur lors de la demande de la connexion (connect).\n");
 		exit(1);
@@ -189,7 +219,7 @@ void source_tcp(int num_port, char *host, int lg_msg, int nb_msg)
 	}
 }
 
-void puits_tcp(int num_port, int lg_msg, int nb_msg)
+void tcp_puits(int num_port, int lg_msg, int nb_msg)
 {
 			char *message = malloc(sizeof(char) * lg_msg);
 			int sock; //Représentation interne du socket local
@@ -269,7 +299,7 @@ void puits_tcp(int num_port, int lg_msg, int nb_msg)
 		
 
 }
-void source_udp(int num_port, char *host, int lg_msg, int nb_msg)
+void udp_source(int num_port, char *host, int lg_msg, int nb_msg)
 {
 	// Creation du socket Source emetteur
 
