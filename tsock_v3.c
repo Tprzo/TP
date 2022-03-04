@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		udp_puits(port, nb_message, lg_msg);
+		udp_puits(port, nb_message, lg_msg);:
 	}
 }
 
