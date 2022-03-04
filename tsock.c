@@ -32,10 +32,10 @@ void afficher_message(char *message, int lg)
 	printf("\n");
 }
 
-void udp_source(int num_port, char *host, int lg_msg, int nb_msg);
+void source_udp(int num_port, char *host, int lg_msg, int nb_msg);
 void udp_puits(int num_port, int lg_msg, int nb_msg);
-void tcp_source(int num_port, char *host, int lg_msg, int nb_msg);
-void tcp_puits(int num_port, int lg_msg, int nb_msg);
+void source_tcp(int num_port, char *host, int lg_msg, int nb_msg);
+void puits_tcp(int num_port, int lg_msg, int nb_msg);
 
 int main(int argc, char **argv)
 {
@@ -45,16 +45,16 @@ int main(int argc, char **argv)
 	int nb_message = -1; /* Nb de messages à envoyer ou à recevoir, par défaut : 10 en émission, infini en réception */
 	int source = -1;	 /* 0=puits, 1=source */
 	int protocole = 0;	 /* 0 = TCP 1 = UDP*/
-	int port = htons(atoi(argv[argc - 1]));
-	char *host;
+	int port = htons(atoi(argv[argc-1]));
+	char* host; 
 	int lg_msg = 30;
-	
-	char message[lg_msg];
+	char *lettreRecue;
 	int destinataire;
 	int tcp_bal = 0;
-	//char *message;
-	char *lettreRecue;
-// Structures
+
+
+	//	char *message;
+	//char message[lg_msg];
 	struct message
 	{
 		char *message;
@@ -77,8 +77,6 @@ int main(int argc, char **argv)
 	{
 		switch (c)
 		{
-		case 'e' :
-            destinataire = atoi(optarg);
 		case 'p':
 			if (source == 1)
 			{
@@ -87,7 +85,8 @@ int main(int argc, char **argv)
 			}
 			source = 0;
 			break;
-
+		case 'e' :
+            destinataire = atoi(optarg);
 		case 's':
 			if (source == 0)
 			{
@@ -124,7 +123,8 @@ int main(int argc, char **argv)
 
 	if (source == 1)
 	{
-		strcpy(host, argv[argc - 2]);
+	    //modif : initialisation de la variable host
+		host = argv[argc-2];
 		if (nb_message == -1)
 			nb_message = 10;
 	}
@@ -133,26 +133,30 @@ int main(int argc, char **argv)
 	{
 		printf("on est dans la source\n");
 		if (protocole == 0)
-			tcp_source(port, host, lg_msg, nb_message);
+			source_tcp(port, host, lg_msg, nb_message);
 		else
-			udp_source(port, host, lg_msg, nb_message);
+			source_udp(port, host, lg_msg, nb_message);
 	}
-	if (source == 0)
+	
+	//modif : il manque l'indentation 
+	if (source == 0) {
 		printf("on est dans le puits\n");
-	if (protocole == 0)
-	{
-		tcp_puits(port, nb_message, lg_msg);
-	}
-	else
-	{
-		udp_puits(port, nb_message, lg_msg);
+	    if (protocole == 0)
+	    {
+	        //modif : inversion des arguments lg_msg et nb_msg
+		    puits_tcp(port, lg_msg, nb_message);
+	    }
+	    else
+	    {
+		    udp_puits(port, nb_message, lg_msg);
+	    }
 	}
 }
 
-void tcp_source(int num_port, char *host, int lg_msg, int nb_msg)
+void source_tcp(int num_port, char *host, int lg_msg, int nb_msg)
 {
 	// Creation du socket Source emetteur
-
+    printf("SOURCE : lg_mess_emis=%d, port=%d, nb_envois=%d, TP=tcp, dest=%s\n", lg_msg, num_port, nb_msg, host);
 	int sockS_TCP;
 	char motif = 'a';
 	printf("--- %d \n", lg_msg);
@@ -178,13 +182,13 @@ void tcp_source(int num_port, char *host, int lg_msg, int nb_msg)
 		   hp->h_addr,
 		   hp->h_length);
 	/*Demande de connexion*/
-	if (connect(sockS_TCP, (struct sockaddr *)&adr_distant, sizeof(struct sockaddr)) == -1)
+	if (connect(sockS_TCP, (struct sockaddr *)&adr_distant, lg_adr_distant) == -1)
 	{
 		perror("Erreur lors de la demande de la connexion (connect).\n");
 		exit(1);
 	}
 
-	printf("SOURCE : lg_mess_emis=%d, port=%d, nb_envois=%d, TP=tcp, dest=%s\n", lg_msg, num_port, nb_msg, host);
+	
 	// envoi des données
 	char *message = malloc(sizeof(char) * lg_msg);
 	for (int i = 1; i <= nb_msg; i++)
@@ -219,7 +223,7 @@ void tcp_source(int num_port, char *host, int lg_msg, int nb_msg)
 	}
 }
 
-void tcp_puits(int num_port, int lg_msg, int nb_msg)
+void puits_tcp(int num_port, int lg_msg, int nb_msg)
 {
 			char *message = malloc(sizeof(char) * lg_msg);
 			int sock; //Représentation interne du socket local
@@ -244,7 +248,8 @@ void tcp_puits(int num_port, int lg_msg, int nb_msg)
 			//Affectation domaine et numero de port
 			memset((char*)&adr_local, 0, sizeof(adr_local));
 			adr_local.sin_family = AF_INET; //domaine internet
-			adr_local.sin_port = htons(num_port); //num de port
+			//modif : j'ai enlevé le htons car c'est déjà fait ds le main
+			adr_local.sin_port = num_port; //num de port
 			adr_local.sin_addr.s_addr = INADDR_ANY; //toutes les adresses IP de la machine
 
 			//Affectation de l'adresse au socket local à la représentation interne
@@ -299,7 +304,7 @@ void tcp_puits(int num_port, int lg_msg, int nb_msg)
 		
 
 }
-void udp_source(int num_port, char *host, int lg_msg, int nb_msg)
+void source_udp(int num_port, char *host, int lg_msg, int nb_msg)
 {
 	// Creation du socket Source emetteur
 
@@ -328,7 +333,7 @@ void udp_source(int num_port, char *host, int lg_msg, int nb_msg)
 	// envoi des données
 	//lg_msg= 30;
 	char message[lg_msg];
-	struct sockaddr *padr_dest;
+	//struct sockaddr *padr_dest;
 	//message = malloc(lg_msg*sizeof(char));
 	construire_message(message, 'a', lg_msg);
 	printf("--- \n");
