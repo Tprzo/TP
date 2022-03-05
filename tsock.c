@@ -17,6 +17,10 @@ données du réseau */
 #include <stdio.h>
 /* pour la gestion des erreurs */
 #include <errno.h>
+// pour faire appel au fonction de bal 
+#include "bal.h"
+
+
 void construire_message(char *message, char motif, int lg)
 {
 	int i;
@@ -50,7 +54,10 @@ int main(int argc, char **argv)
 	int lg_msg = 30;
 	char *lettreRecue;
 	int destinataire;
-	int tcp_bal = 0;
+	int bal = 0;
+    int recep;
+    int nBAL;
+
 
 
 	//	char *message;
@@ -95,9 +102,7 @@ int main(int argc, char **argv)
 			}
 			source = 1;
 			break;
-		case 'b': 
-			source = 2;
-			break;
+		
 		case 'n':
 			nb_message = atoi(optarg);
 			break;
@@ -105,10 +110,19 @@ int main(int argc, char **argv)
 			lg_msg = atoi(optarg);
 		    printf("lg_mesg = %d\n", lg_msg);
 			break;
+        case 'r' :
+            bal=1;
+            recep=1;
+            nBAL = atoi(optarg);
+            break;
 		case 'u':
 			protocole = 1; /* tester si le protocle est UDP*/
 			break;
-
+        case 'b' :
+                
+            bal=1;
+            break;
+        
 		default:
 			printf("usage: cmd [-p|-s][-n ##]\n");
 			break;
