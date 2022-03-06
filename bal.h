@@ -1,9 +1,8 @@
 #ifndef _tsock_
 #define _tsock_
 #include <stdio.h>
-//Variable qui donne la longueur max d'un message
 
-int maxsize = 9999;
+
 
 typedef struct BAL
 {
@@ -42,7 +41,9 @@ void empty(BAL *bal);
 void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL);
 void SBAL(int port, char *dest);
 void RBAL(int port, char *dest, int nBAL);
-// gestion BAL
+/*---------------------------------------------------------
+  ---------------------- Gestion BAL ----------------------
+  ---------------------------------------------------------*/
 LISTE_BAL *init_BAL()
 {
     LISTE_BAL *liste = (LISTE_BAL *)malloc(sizeof(struct LISTE_BAL));
@@ -55,9 +56,7 @@ LISTE_BAL *init_BAL()
 
 void printLISTE(struct LISTE_BAL *liste)
 {
-    printf("              __________________________________________\n");
-    printf("                Check général des BAL de notre liste :\n\n");
-    printf("                        %d BAL dans notre liste       \n\n", liste->nb);
+    printf("    %d BAL dans notre liste       \n\n", liste->nb);
     liste->current = liste->first;
     while (liste->current != NULL)
     {
@@ -66,7 +65,9 @@ void printLISTE(struct LISTE_BAL *liste)
     }
     printf("              __________________________________________\n\n");
 }
-// Afficher le contenu d'une BAL
+/*---------------------------------------------------------
+  ----------- Afficher le contenu d'une BAL ---------------
+  ---------------------------------------------------------*/
 void printBAL(BAL *bal, int lg)
 {
     printf("Contenu de la BAL n°%d qui contient %d lettres \n", bal->num, bal->nb);
@@ -82,7 +83,9 @@ void printBAL(BAL *bal, int lg)
     }
     printf("\n\n");
 }
-// Ajouter une BAL
+/*---------------------------------------------------------
+  -------------------- Ajouter une BAL --------------------
+  ---------------------------------------------------------*/
 void add_BAL(int n, LISTE_BAL *liste)
 {
     BAL *nouv = malloc(sizeof(struct BAL));
@@ -105,7 +108,10 @@ void add_BAL(int n, LISTE_BAL *liste)
     }
     liste->nb++;
 }
-// Retourne une BAL en fonction de son num
+/*---------------------------------------------------------
+  ---------------------- Numero  BAL ----------------------
+  ---------------------------------------------------------*/
+
 BAL *find_BAL(LISTE_BAL *liste, int num)
 {
     BAL *bal = malloc(sizeof(struct BAL));
@@ -157,9 +163,12 @@ BAL *find_BAL(LISTE_BAL *liste, int num)
         }
     }
     return bal;
+}
 
-    //Ajouter une lettre en fin de BAL
-    void add_LETTRE(int n, int lg, BAL *bal, char *mess)
+/*--------------------------------------------------------
+------------------- Ajouter num fin BAL ------------------
+---------------------------------------------------------*/
+void add_LETTRE(int n, int lg, BAL *bal, char *mess)
     {
         bal->nb = (bal->nb) + 1;
         LETTRE *nouv;
@@ -185,8 +194,10 @@ BAL *find_BAL(LISTE_BAL *liste, int num)
         for (int i = 0; i < lg; i++)
             nouv->message[i] = mess[i];
     }
-    // Detruire une liste de BAL en fin d'utilisation
-    void empty(BAL * bal)
+/*---------------------------------------------------------
+  --- Detruire liste en fin d'utilisation de BAL ----------
+  ---------------------------------------------------------*/
+void empty(BAL * bal)
     {
         bal->l_current = bal->l_first;
         while (bal->l_current != NULL)
@@ -197,7 +208,7 @@ BAL *find_BAL(LISTE_BAL *liste, int num)
             (bal->nb)--;
         }
     }
-    void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL)
+void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL)
     {
         //Déclarations
         int sock;
@@ -285,7 +296,7 @@ BAL *find_BAL(LISTE_BAL *liste, int num)
         free(pdu);
         printf("Envoi effectué avec succès\n");
     }
-    void SBAL(int port, char *dest)
+void SBAL(int port, char *dest)
     {
         //Déclarations
         int sock, sock2; //sock bis local orienté échanges
@@ -440,7 +451,7 @@ BAL *find_BAL(LISTE_BAL *liste, int num)
             free(message);
         }
     }
-    void RBAL(int port, char *dest, int nBAL)
+void RBAL(int port, char *dest, int nBAL)
     {
         //Déclarations
         int sock;
