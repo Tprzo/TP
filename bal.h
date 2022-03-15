@@ -1,7 +1,25 @@
 #ifndef _tsock_
 #define _tsock_
 #include <stdio.h>
-
+/* librairie standard ... */
+#include <stdlib.h>
+/* pour getopt */
+#include <unistd.h>
+/* déclaration des types de base */
+#include <sys/types.h>
+/* constantes relatives aux domaines, types et protocoles */
+#include <sys/socket.h>
+/* constantes et structures propres au domaine UNIX */
+#include <sys/un.h>
+/* constantes et structures propres au domaine INTERNET */
+#include <netinet/in.h>
+/* structures retournées par les fonctions de gestion de la base de
+données du réseau */
+#include <netdb.h>
+/* pour les entrées/sorties */
+#include <stdio.h>
+/* pour la gestion des erreurs */
+#include <errno.h>
 
 
 typedef struct BAL
@@ -266,8 +284,8 @@ void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL)
             printf("SOURCE : lettre n°%d (%d) [", i, lg_msg);
 
             //Création du message
-            construire_message2(message, motif, lg_msg, i);
-            printbuffer2(nBAL, message);
+            construire_message(message, motif, lg_msg, i);
+            //printbuffer2(nBAL, message);
             afficher_message(message, lg_msg);
 
             //Envoi du message
@@ -501,7 +519,7 @@ void RBAL(int port, char *dest, int nBAL)
             printf("Echec de l'envoi du PDU Emetteur (fonction write en défaut)\n");
             exit(1);
         }
-        char *lgmsg = malloc(maxsize * sizeof(char));
+        char *lgmsg = malloc(sizeof(char));
         nb = 10;
         int n = 1;
         lg_recv = 1;

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	int bal=-1;
 	int nb_lettres=3;
 	int nBAL=-1;
-	char *dest ;
+	
 
 	
 	struct message
@@ -127,22 +127,22 @@ int main(int argc, char **argv)
 	{
 		printf("on est dans la source\n");
 		if (protocole == 0)
-			source_tcp(port, host, lg_msg, nb_message);
+			source_tcp (port,nb_message,lg_msg,host);
 		else
-			source_udp(port, host, lg_msg, nb_message);
+			source_udp(port,nb_message,lg_msg,host);
 	}
 	
-	//modif : il manque l'indentation 
+
 	if (source == 0) {
 		printf("on est dans le puits\n");
 	    if (protocole == 0)
 	    {
-	        //modif : inversion des arguments lg_msg et nb_msg
-		    puits_tcp(port, lg_msg, nb_message);
+	     
+		    puits_tcp(port,nb_message,lg_msg);
 	    }
 	    else
 	    {
-		    udp_puits(port, nb_message, lg_msg);
+		    puits_udp(port, nb_message, lg_msg);
 	    }
 	}
 }
