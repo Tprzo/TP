@@ -364,12 +364,7 @@ void SBAL(int port, char *dest)
         liste = init_BAL();
         while (1)
         {
-            if ((sock2 = accept(sock, (struct sockaddr *)&addr_distant, &lg_addr_distant)) == -1)
-            {
-                printf("Refus de connexion par le serveur\n");
-                exit(1);
-            }
-
+            
             pdu = malloc(50 * sizeof(char));
             if ((lg_pdu = read(sock2, pdu, lg_pdu)) < 0)
             {
