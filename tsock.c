@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	int bal=-1;
 	int nb_lettres=3;
 	int nBAL=-1;
-	
+	int recepteur;
 
 	
 	struct message
@@ -85,6 +85,7 @@ int main(int argc, char **argv)
             break;
 		case 'e' :
 			bal=1;
+			recepteur=0;
             nBAL = atoi(optarg);
             break;
 		case 'n':
@@ -92,6 +93,7 @@ int main(int argc, char **argv)
 			break;
 		case 'r' :
             bal=1;
+			recepteur=1;
             nBAL = atoi(optarg);
             break;
 		case 'l':
@@ -145,5 +147,13 @@ int main(int argc, char **argv)
 		    puits_udp(port, nb_message, lg_msg);
 	    }
 	}
+/* --------------------------------- Partie BAL ---------------------------------*/
+
+
+
+
+
+
+
 }
 

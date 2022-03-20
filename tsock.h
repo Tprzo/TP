@@ -23,9 +23,9 @@ données du réseau */
 // ****************Declaration des fonctions**************** 
 void construire_message(char *message, char motif, int lg, int i);
 void afficher_message(char *message, int lg);
-void source_udp(int port, int nb_message  , int lg_msg, char*dest);
+void source_udp(int port, int nb_message  , int lg_msg, char*host);
 void puits_udp(int port, int nb_message , int lg_message);
-void source_tcp (int port, int nb_message , int lg_msg, char* dest);
+void source_tcp (int port, int nb_message , int lg_msg, char*host);
 void puits_tcp(int port , int nb_message, int lg_msg);
 
 
@@ -60,7 +60,7 @@ void afficher_message(char *message, int lg)
 }
 
 //****************Source UDP****************
-void source_udp(int port ,int nb_mess , int lg_msg,char*dest)
+void source_udp(int port ,int nb_mess , int lg_msg,char*host)
 {
 	
   	int length_addr_dist;
@@ -72,7 +72,7 @@ void source_udp(int port ,int nb_mess , int lg_msg,char*dest)
   	struct hostent* hp;
   	char *message=malloc(sizeof(char)*lg_msg) ;
 
-   	if((sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1) //création du socket + test erreur (socket retourne -1 si le socket ne s'ouvre pas comme il faut
+   	if((sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1)
     {
       printf("Erreur à la création du socket\n");
       exit(1);
@@ -81,7 +81,7 @@ void source_udp(int port ,int nb_mess , int lg_msg,char*dest)
   	addr_distant.sin_family=AF_INET;
   	addr_distant.sin_port=port;
 
-  	if((hp=gethostbyname(dest))==NULL)
+  	if((hp=gethostbyname(host))==NULL)
     {
       printf("Erreur gethostbyname\n");
       exit(1);
@@ -104,9 +104,9 @@ void source_udp(int port ,int nb_mess , int lg_msg,char*dest)
       	afficher_message(message,sent);
     }
 
-  	if(close(sock)==-1) //fermeture + test erreur à la fermeture
+  	if(close(sock)==-1) 
     {
-      printf("Echec à la destruction du socket\n");
+      printf("Echec à la hostruction du socket\n");
       exit(1);
     }
 }
@@ -114,26 +114,26 @@ void source_udp(int port ,int nb_mess , int lg_msg,char*dest)
 //****************Puits UDP****************
 void puits_udp(int port, int nb_message, int lg_message)
 {
-
+ // Creation du socket
   int sock;
   struct sockaddr_in addr_local,addr_distant;
   int recv;
   int lg_dist;
   char *message=malloc(sizeof(char)*lg_message) ;
 
-  if((sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1) //création du socket + test erreur d'ouverture
+  if((sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP))==-1) 
     {
       printf("Erreur à la création du socket\n");
       exit(1);
     }
-  
-  	memset((char*)&addr_local,0,sizeof(addr_local));//reset de addr_local
- 	addr_local.sin_family=AF_INET;                  //attribution des différents attributs de addr_local
+  // Definition de l'adresse locale
+  	memset((char*)&addr_local,0,sizeof(addr_local));
+ 	addr_local.sin_family=AF_INET;                 
   	addr_local.sin_port=port;
-  	addr_local.sin_addr.s_addr=INADDR_ANY;          //On dit que l'on veut recevoir sur n'importe quelle carte réseau de notre machine (=INADDR_ANY)
+  	addr_local.sin_addr.s_addr=INADDR_ANY;          
 
-
-  	if ((bind(sock,(struct sockaddr*)&addr_local, sizeof(addr_local)))==-1) //bind de la réception + test erreur du bind
+	// assocation de l'adresse locale au socket local 
+  	if ((bind(sock,(struct sockaddr*)&addr_local, sizeof(addr_local)))==-1) 
     {
       	printf("Echec du Bind\n");
       	exit(1);
@@ -146,7 +146,7 @@ void puits_udp(int port, int nb_message, int lg_message)
     while(recv!=0)
     {
         recv=recvfrom(sock,message,lg_message,0,(struct sockaddr*)&addr_distant,&lg_dist);
-        if (recv==-1) //process de réception (recvfrom natif à l'API socket, + test erreur
+        if (recv==-1) 
         {
             printf("Erreur receive from\n");
             exit(1);
@@ -166,16 +166,16 @@ void puits_udp(int port, int nb_message, int lg_message)
         i++;
     }
   
-   if(close(sock)==-1) //fermeture + test erreur à la fermeture
+   if(close(sock)==-1) 
     {
-      printf("Echec à la destruction du socket\n");
+      printf("Echec à la hostruction du socket\n");
       exit(1);
     }
 }
 //****************Source TCP****************
-void source_tcp (int port, int nb_message , int lg_msg , char* dest)
+void source_tcp (int port, int nb_message , int lg_msg , char* host)
 {
-	//Déclarations
+
 	int sock;
 	struct sockaddr_in addr_distant ;
 	int lg_addr_distant=sizeof(addr_distant);
@@ -185,7 +185,7 @@ void source_tcp (int port, int nb_message , int lg_msg , char* dest)
 	char * message=malloc(lg_msg*sizeof(char));
 	int envoi=-1;
 
-//--------Etablissement connexion--------
+
 
 	//Création socket 
 	if((sock=socket(AF_INET,SOCK_STREAM,0))==-1)
@@ -196,11 +196,11 @@ void source_tcp (int port, int nb_message , int lg_msg , char* dest)
 	
 	//Construction adresse socket distant
 	memset((char*)&addr_distant,0,sizeof(addr_distant));
-	addr_distant.sin_family=AF_INET;  //Internet
-	addr_distant.sin_port=port;       //Numéro de Port
+	addr_distant.sin_family=AF_INET;  
+	addr_distant.sin_port=port;       
 
-	//Affectation IP
-	if((hp=gethostbyname(dest))==NULL)
+	//Affectation @IP
+	if((hp=gethostbyname(host))==NULL)
 	{
 		printf("Erreur de requête IP.\n");
 		exit(1);
@@ -216,8 +216,6 @@ void source_tcp (int port, int nb_message , int lg_msg , char* dest)
         exit(1);
 	}
 
-	//Connexion Réussie !
-
 //----------TRANSFERT DE DONNEES-----------
 
 	for (int i=1; i<=nb_message;i++)
@@ -227,7 +225,7 @@ void source_tcp (int port, int nb_message , int lg_msg , char* dest)
 		
 		construire_message(message,motif,lg_msg,i);
 
-		//printbuffer2(i,message);
+	
 		afficher_message(message,lg_msg);
 
 		//Envoi du message 
@@ -260,14 +258,14 @@ void source_tcp (int port, int nb_message , int lg_msg , char* dest)
 void puits_tcp(int port , int nb_message, int lg_msg)
 {
 	//Déclarations
-	int sock , sock2; //sock bis local orienté échanges 
+	int sock; 
 	struct sockaddr* addr_distant;
 	struct sockaddr_in addr_local;
 	int lg_addr_distant=sizeof(addr_distant);
 	int lg_addr_local=sizeof(addr_local);
 	struct hostent *hp;
 	char motif;
-	char * message=malloc(lg_msg*sizeof(char)); //Penser au free en fin de programme pour libérer l'espace mémoire
+	char * message=malloc(lg_msg*sizeof(char));
 	int lg_recv=-1;
 
 //-----------------Connexion --------------
@@ -294,24 +292,13 @@ void puits_tcp(int port , int nb_message, int lg_msg)
 		exit(1);
 	}
 
-	//Check connexions entrantes 
+	
 
-	if (listen(sock,100)<0)	
-	{
-		printf("Trop de connexions en attentes, échec de la demande\n");
-		exit(1);
-	}
-
-	//Accept connexion
 
 	if (nb_message==-1)
 		nb_message=10;
 
-	if ((sock2 = accept(sock,(struct sockaddr*)&addr_distant,&lg_addr_distant))==-1)
-	{
-		printf("Refus de connexion par le serveur\n");
-		exit(1);
-	}
+
 
 	//Reception des messages au niveau du socket d'échange
 
@@ -319,13 +306,7 @@ void puits_tcp(int port , int nb_message, int lg_msg)
     int i=1;
     while(lg_recv!=0)
     {
-
-        if((lg_recv=read(sock2,message, lg_msg))<0)
-        {
-            printf("Echec de la lecture du message entrant \n");
-            exit(1);
-        }
-        if (lg_recv!=0)
+		if (lg_recv!=0)
         {
             printf("PUITS : Réception n°%d (%d) [" , i , lg_msg);
             afficher_message(message, lg_recv);
