@@ -148,12 +148,26 @@ int main(int argc, char **argv)
 	    }
 	}
 /* --------------------------------- Partie BAL ---------------------------------*/
-
-
-
-
-
-
-
+if ( nb_message == -1 )
+{
+	if (recepteur==0)
+		nb_message =10;
+}
+if (bal==1 & recepteur==-1)
+{
+	printf("On est dans le serveur BAL");
+	SBAL(port,host);
+}
+else if(bal==1 & recepteur ==0)
+{
+	printf("On est dans l'emetteur du BAL");
+	EBAL(port,host,nb_message,lg_msg,nBAL);
+}
+else if(bal==1 & recepteur ==1)
+{
+	printf("On est dans le recepteur BAL");
+	RBAL(port,host,nBAL);
+}
+exit(0);
 }
 
