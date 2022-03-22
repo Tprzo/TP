@@ -31,7 +31,7 @@ void puits_tcp(int port , int nb_message, int lg_msg);
 
 
 //****************Construire message****************
-void construire_message(char *message, char motif, int lg, int i)
+void construire_message(char *message, char motif, int lg_msg, int i)
 {
     char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
     if (i>=27)
@@ -45,16 +45,16 @@ void construire_message(char *message, char motif, int lg, int i)
     else
         motif=alphabet[i - 1];
 
-    for (int j=0;j<lg-5;j++)
+    for (int j=0;j<lg_msg-5;j++)
     {
         *(message+j+5) = motif;
     }
 }
 
 //****************Afficher message****************
-void afficher_message(char *message, int lg)
+void afficher_message(char *message, int lg_msg)
 {
-  	for (int i=0;i<lg;i++)
+  	for (int i=0;i<lg_msg;i++)
   	    printf("%c", *(message+i));
   	printf("]\n");
 }
@@ -104,11 +104,7 @@ void source_udp(int port ,int nb_mess , int lg_msg,char*host)
       	afficher_message(message,sent);
     }
 
-  	if(close(sock)==-1) 
-    {
-      printf("Echec à la hostruction du socket\n");
-      exit(1);
-    }
+  	
 }
 
 //****************Puits UDP****************
@@ -126,13 +122,13 @@ void puits_udp(int port, int nb_message, int lg_message)
       printf("Erreur à la création du socket\n");
       exit(1);
     }
-  // Definition de l'adresse locale
+  // Definition de l'@ locale
   	memset((char*)&addr_local,0,sizeof(addr_local));
  	addr_local.sin_family=AF_INET;                 
   	addr_local.sin_port=port;
   	addr_local.sin_addr.s_addr=INADDR_ANY;          
 
-	// assocation de l'adresse locale au socket local 
+	// assocation de l'@locale au socket local 
   	if ((bind(sock,(struct sockaddr*)&addr_local, sizeof(addr_local)))==-1) 
     {
       	printf("Echec du Bind\n");
@@ -160,17 +156,13 @@ void puits_udp(int port, int nb_message, int lg_message)
         if (i==nb_message)
         {
             recv=0;
-            printf("On a atteint le nombre de messages à recevoir\n");
+            printf("On a atteint le nombre de messages max\n");
         }
 
         i++;
     }
   
-   if(close(sock)==-1) 
-    {
-      printf("Echec à la hostruction du socket\n");
-      exit(1);
-    }
+   
 }
 //****************Source TCP****************
 void source_tcp (int port, int nb_message , int lg_msg , char* host)
@@ -194,12 +186,12 @@ void source_tcp (int port, int nb_message , int lg_msg , char* host)
 		exit(1);
 	}
 	
-	//Construction adresse socket distant
+	//Construction  @socket distant
 	memset((char*)&addr_distant,0,sizeof(addr_distant));
 	addr_distant.sin_family=AF_INET;  
 	addr_distant.sin_port=port;       
 
-	//Affectation @IP
+	//Affectation @ip
 	if((hp=gethostbyname(host))==NULL)
 	{
 		printf("Erreur de requête IP.\n");
@@ -212,11 +204,11 @@ void source_tcp (int port, int nb_message , int lg_msg , char* host)
 	
 	if (connect(sock,(struct sockaddr *)&addr_distant,sizeof(addr_distant))==-1)
 	{
-		printf("Erreur lors de la connexion, en attente de la tentative suivante \n");
+		printf("Erreur de connexion\n");
         exit(1);
 	}
 
-//----------TRANSFERT DE DONNEES-----------
+//----------Envoi de donnees-----------
 
 	for (int i=1; i<=nb_message;i++)
 	{
@@ -237,40 +229,30 @@ void source_tcp (int port, int nb_message , int lg_msg , char* host)
 		}
 	}
 
-	//Fermeture connexion
+	//fin connexion
 
-	if(shutdown(sock,2)==-1)
-	{
-		printf("Erreur à la fermeture de la connexion TCP \n");
-		exit(1);
-	}
-
-	if (close(sock)==-1)
-	{
-		printf("Echec de la fermeture du socket distant");
-		exit(1);
-	}
+	
 
 	free(message);
-	printf("Envoi effectué avec succès\n");
+	printf("Envoi effectué \n");
 }
 //****************Puits TCP****************
 void puits_tcp(int port , int nb_message, int lg_msg)
 {
 	//Déclarations
-	int sock; 
+	int sock , sock2;
 	struct sockaddr* addr_distant;
 	struct sockaddr_in addr_local;
 	int lg_addr_distant=sizeof(addr_distant);
 	int lg_addr_local=sizeof(addr_local);
 	struct hostent *hp;
 	char motif;
-	char * message=malloc(lg_msg*sizeof(char));
+	char * message=malloc(lg_msg*sizeof(char)); 
 	int lg_recv=-1;
 
 //-----------------Connexion --------------
 
-	//Création socket local 	
+	//Creation socket local 	
 
 	if ((sock=socket(AF_INET,SOCK_STREAM,0))==-1)
 	{
@@ -278,7 +260,7 @@ void puits_tcp(int port , int nb_message, int lg_msg)
 		exit(1);
 	}
 
-	//Construction adresse socket local | Affectation port et domaine
+	//Construction @socket local 
 
 	memset((char*)&addr_local, 0 , sizeof(addr_local));
 	addr_local.sin_family=AF_INET;
@@ -292,21 +274,38 @@ void puits_tcp(int port , int nb_message, int lg_msg)
 		exit(1);
 	}
 
-	
+ 
 
+	if (listen(sock,100)<0)	
+	{
+		printf("Echec de la requete\n");
+		exit(1);
+	}
+
+	//Accept connexion
 
 	if (nb_message==-1)
 		nb_message=10;
 
+	if ((sock2 = accept(sock,(struct sockaddr*)&addr_distant,&lg_addr_distant))==-1)
+	{
+		printf("Refus de connexion\n");
+		exit(1);
+	}
 
-
-	//Reception des messages au niveau du socket d'échange
+	
 
 //--------------Reception des données-----------
     int i=1;
     while(lg_recv!=0)
     {
-		if (lg_recv!=0)
+
+        if((lg_recv=read(sock2,message, lg_msg))<0)
+        {
+            printf("Echec de la lecture du message entrant \n");
+            exit(1);
+        }
+        if (lg_recv!=0)
         {
             printf("PUITS : Réception n°%d (%d) [" , i , lg_msg);
             afficher_message(message, lg_recv);
@@ -314,7 +313,7 @@ void puits_tcp(int port , int nb_message, int lg_msg)
         }
     }
 
-	
+	//detruire le socket
 	if(close(sock)==-1)
 	{
 		printf("Impossible de fermer le socket");

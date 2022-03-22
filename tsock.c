@@ -19,51 +19,31 @@ données du réseau */
 #include <errno.h>
 // pour faire appel au fonction du tsock
 #include "tsock.h"
-// pour faire appel au fonction de bal 
+// pour faire appel au fonction de bal
 #include "bal.h"
-
-
-
 
 int main(int argc, char **argv)
 {
 	int c;
 	extern char *optarg;
 	extern int optind;
-	int nb_message = -1; /* Nb de messages à envoyer ou à recevoir, par défaut : 10 en émission, infini en réception */
+	int nb_message =-1; /* Nb de messages à envoyer ou à recevoir, par défaut : 10 en émission, infini en réception */
 	int source = -1;	 /* 0=puits, 1=source */
-	int protocole = 0;	 /* 0 = TCP 1 = UDP*/
-	int port = htons(atoi(argv[argc-1]));
-	char* host; 
+	int protocole = 0;	 /* 0 = TCP | 1 = UDP*/
+	int port = -1;
+	char *host;
 	int lg_msg = 30;
-	int bal=-1;
-	int nb_lettres=3;
-	int nBAL=-1;
-	int recepteur;
+	int bal = -1;
+	int nb_lettres = 3;
+	int nBAL = -1;
+	port = htons(port);
+	int recepteur = -1;
+	struct hostent *hp;
 
-	
-	struct message
-	{
-		char *message;
-		struct message *message_suivante;
-	};
-	struct bal
-	{
-		int num_bal;
-		struct bal *bal_suivante;
-		struct message *lettre;
-	};
-	struct liste
-	{
-		struct bal *first;
-		struct bal *last;
-		struct bal *courant;
-	};
-
-	while ((c = getopt(argc, argv, "pn:sul:be:r")) != -1)
+	while ((c = getopt(argc, argv, "pn:sul:be:r:")) != -1)
 	{
 		switch (c)
-		{ 
+		{
 		case 'p':
 			if (source == 1)
 			{
@@ -78,38 +58,50 @@ int main(int argc, char **argv)
 				printf("usage: cmd [-p|-s][-n ##]\n");
 				exit(1);
 			}
+			host = argv[argc - 2];
 			source = 1;
 			break;
-		case 'b' :
-            bal=1;
-            break;
-		case 'e' :
-			bal=1;
-			recepteur=0;
-            nBAL = atoi(optarg);
-            break;
+		case 'b':
+
+			bal = 1;
+			break;
+
+		case 'e':
+			bal = 1;
+			recepteur = 0;
+			nBAL = atoi(optarg);
+			break;
+
 		case 'n':
 			nb_message = atoi(optarg);
+
 			break;
-		case 'r' :
-            bal=1;
-			recepteur=1;
-            nBAL = atoi(optarg);
-            break;
+
+		case 'r':
+			bal = 1;
+			recepteur = 1;
+			nBAL = atoi(optarg);
+			break;
 		case 'l':
 			lg_msg = atoi(optarg);
-		    printf("lg_mesg = %d\n", lg_msg);
+			printf("lg_mesg = %d\n", lg_msg);
 			break;
 		case 'u':
 			protocole = 1;
 			break;
-        
-        
 		default:
 			printf("usage: cmd [-p|-s][-n ##]\n");
+			exit(1);
 			break;
 		}
 	}
+
+	if ((port = atoi(argv[argc - 1])) != -1)
+	{
+		port = htons(port);
+	}
+
+	host = argv[argc - 2];
 
 	if (source == -1)
 	{
@@ -117,57 +109,75 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (source == 1)
+	if (bal == -1)
 	{
-	    //modif : initialisation de la variable host
-		host = argv[argc-2];
-		if (nb_message == -1)
-			nb_message = 10;
-	}
-	/* creation du socket*/
-	if (source == 1)
-	{
-		printf("on est dans la source\n");
-		if (protocole == 0)
-			source_tcp (port,nb_message,lg_msg,host);
+		if (source == 1)
+			printf("SOURCE : ");
 		else
-			source_udp(port,nb_message,lg_msg,host);
-	}
+			printf("PUITS : ");
+
+		if (protocole == 1)
+			printf("Protocole de transport : UDP | ");
+
+		else
+			printf("Protocole de transport : TCP | ");
+
+		if (nb_message == -1) // Attribution du nombre de message à envoyer/recevoir si absence de -n XX
+		{
+			if (source == 1)
+			{
+				nb_message = 10;
+				printf("Nombre d'envois : %d |", nb_message);
+			}
+			else{
+			
+
+				printf("Nombre de receptions : infini |");
+		}}
+
+		else
+		{
+			if (source == 1)
+				printf("Nombre d'envois = %d |", nb_message);
+			else
+				printf("nb de tampons à recevoir = %d |", nb_message);
+		}
+		printf("Host : %s\n", host);
 	
-
-	if (source == 0) {
-		printf("on est dans le puits\n");
-	    if (protocole == 0)
-	    {
-	     
-		    puits_tcp(port,nb_message,lg_msg);
-	    }
-	    else
-	    {
-		    puits_udp(port, nb_message, lg_msg);
-	    }
+		if (source == 1 && protocole == 1)
+			source_udp(port, nb_message, lg_msg, host);
+		if (source == 0 & protocole == 1)
+			puits_udp(port, nb_message, lg_msg);
+		if (source == 0 & protocole == 0)
+			puits_tcp(port, nb_message, lg_msg);
+		if (source == 1 & protocole == 0)
+			source_tcp(port, nb_message, lg_msg, host);
 	}
-/* --------------------------------- Partie BAL ---------------------------------*/
-if ( nb_message == -1 )
-{
-	if (recepteur==0)
-		nb_message =10;
-}
-if (bal==1 & recepteur==-1)
-{
-	printf("On est dans le serveur BAL");
-	SBAL(port,host);
-}
-else if(bal==1 & recepteur ==0)
-{
-	printf("On est dans l'emetteur du BAL");
-	EBAL(port,host,nb_message,lg_msg,nBAL);
-}
-else if(bal==1 & recepteur ==1)
-{
-	printf("On est dans le recepteur BAL");
-	RBAL(port,host,nBAL);
-}
-exit(0);
-}
+	else
 
+	{
+
+		// --------------------------------- Partie BAL ---------------------------------
+		if (nb_message == -1)
+		{
+			if (recepteur == 0)
+				nb_message = 10;
+		}
+		if (bal == 1 & recepteur == -1)
+		{
+			printf("On est dans le serveur BAL");
+			SBAL(port, host);
+		}
+		else if (bal == 1 & recepteur == 0)
+		{
+			printf("On est dans l'emetteur du BAL");
+			EBAL(port, host, nb_message, lg_msg, nBAL);
+		}
+		else if (bal == 1 & recepteur == 1)
+		{
+			printf("On est dans le recepteur BAL");
+			RBAL(port, host, nBAL);
+		}
+	}
+	exit(0);
+}

@@ -49,6 +49,8 @@ typedef struct LISTE_BAL
 } LISTE_BAL;
 // Declaration des fonctions
 
+void construire_message(char *message, char motif, int lg, int i);
+void afficher_message(char *message, int lg);
 LISTE_BAL *init_BAL();
 void add_BAL(int num, LISTE_BAL *liste);
 BAL *find_BAL(LISTE_BAL *liste, int num);
@@ -226,6 +228,67 @@ void empty(BAL * bal)
             (bal->nb)--;
         }
     }
+int find_BALR(LISTE_BAL*liste, int num)
+{
+    int ret;
+    if (liste->first==NULL)
+    {
+        ret=-1;
+    }
+    else
+    {
+        liste->current=liste->first;
+        if (liste->current==liste->last)
+        {
+            if (liste->current->num==num)
+            {
+                if (liste->current->l_first==NULL)
+                    ret=-1;
+                else
+                    ret=liste->current->l_first->lg;
+            }
+            else
+                ret=-1;
+        }
+        else if (liste->first->num==num)
+        {
+            if (liste->current->l_first==NULL)
+                ret=-1;
+
+            else
+                ret=liste->current->l_first->lg;
+        }
+        else
+        {
+            int var=0;
+            while(var==0)
+            {
+                if (liste->current->suiv==NULL)
+                    var=-1;
+                else
+                {
+                    liste->current=liste->current->suiv;
+                    if (liste->current->num==num)
+                        var=1;
+                    if (liste->current==NULL)
+                        var=-1;
+                }
+
+            }
+            if (var==1)
+            {
+                if (liste->current->l_first==NULL)
+                    ret=-1;
+                else
+                    ret=liste->current->l_first->lg;
+            }
+            else
+                ret=-1;
+        }
+
+    }
+    return ret;
+}
 void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL)
     {
         //Déclarations
