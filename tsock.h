@@ -222,7 +222,7 @@ void source_tcp (int port, int nb_message , int lg_msg , char* host)
 
 		//Envoi du message 
 
-		if ((envoi=write(sock,message,lg_msg/*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/))==-1)
+		if ((envoi=write(sock,message,lg_msg))==-1)
 		{
 			printf("Echec de l'envoi du message (fonction write en défaut)\n");
 			exit(1);

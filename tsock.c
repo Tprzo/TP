@@ -103,11 +103,11 @@ int main(int argc, char **argv)
 
 	host = argv[argc - 2];
 
-	if (source == -1)
+	/*if (source == -1)
 	{
 		printf("usage: cmd [-p|-s][-n ##]\n");
 		exit(1);
-	}
+	}*/
 
 	if (bal == -1)
 	{
@@ -165,12 +165,12 @@ int main(int argc, char **argv)
 		}
 		if (bal == 1 & recepteur == -1)
 		{
-			printf("On est dans le serveur BAL");
+			printf("On est dans le serveur BAL\n");
 			SBAL(port, host);
 		}
 		else if (bal == 1 & recepteur == 0)
 		{
-			printf("On est dans l'emetteur du BAL");
+			printf("On est dans l'emetteur du BAL\n");
 			EBAL(port, host, nb_message, lg_msg, nBAL);
 		}
 		else if (bal == 1 & recepteur == 1)

@@ -20,7 +20,7 @@ données du réseau */
 #include <stdio.h>
 /* pour la gestion des erreurs */
 #include <errno.h>
-
+int maxsize=9999;
 
 typedef struct BAL
 {
@@ -59,7 +59,7 @@ void add_LETTRE(int n, int lg, BAL *bal, char *mess);
 void printBAL(BAL *bal, int lg);
 void empty(BAL *bal);
 void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL);
-void SBAL(int port, char *dest);
+void SBAL(int port, char *host);
 void RBAL(int port, char *dest, int nBAL);
 /*---------------------------------------------------------
   ---------------------- Gestion BAL ----------------------
@@ -378,245 +378,257 @@ void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL)
         printf("Envoi effectué avec succès\n");
     }
 void SBAL(int port, char *dest)
-    {
+{
         //Déclarations
-        int sock, sock2; //sock bis local orienté échanges
-        struct sockaddr *addr_distant;
-        struct sockaddr_in addr_local;
-        int lg_addr_distant = sizeof(addr_distant);
-        int lg_addr_local = sizeof(addr_local);
-        struct hostent *hp;
-        char motif;
-        char *message;
-        int lg_recv = -1;
-        int lg_sent = -1;
-        int lg_pdu = 50;
-        int type = -1;
-        int nb;
-        int lg;
-        int n = 1;
-        int nBAL;
-        BAL *bal = malloc(sizeof(struct BAL));
-        char *pdu; //=malloc(sizeof(char));
-        LISTE_BAL *liste;
-        // Connexion
-        //Création socket local
-        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-        {
-            printf("Echec de la création d'un socket local\n");
-            exit(1);
-        }
-        //Construction adresse socket local | Affectation port et domaine
-        memset((char *)&addr_local, 0, sizeof(addr_local));
-        addr_local.sin_family = AF_INET;
-        addr_local.sin_addr.s_addr = INADDR_ANY;
-        addr_local.sin_port = port;
+    int sock , sock2;
+    struct sockaddr* addr_distant;
+    struct sockaddr_in addr_local;
+    int lg_addr_distant=sizeof(addr_distant);
+    int lg_addr_local=sizeof(addr_local);
+    struct hostent *hp;
+    char motif;
+    char *message;
+    int lg_recv=-1;
+    int lg_sent=-1;
+    int lg_pdu=50;
+    int type=-1;
+    int nb;
+    int lg;
+    int n=1;
+    int nBAL;
+    BAL*bal=malloc(sizeof(struct BAL));
+    char *pdu;
+    LISTE_BAL* liste;
 
-        //Bind
-        if (bind(sock, (struct sockaddr *)&addr_local, lg_addr_local) == -1)
-        {
-            printf("Echec du bind.\n");
-            exit(1);
-        }
-        //Check connexions entrantes
-        if (listen(sock, 100) < 0)
-        {
-            printf("Trop de connexions en attentes, échec de la demande\n");
-            exit(1);
-        }
-        liste = init_BAL();
-        while (1)
-        {
-            
-            pdu = malloc(50 * sizeof(char));
-            if ((lg_pdu = read(sock2, pdu, lg_pdu)) < 0)
-            {
-                printf("Echec de lecture du PDU entrant\n");
-                exit(1);
-            }
-            scanf(pdu, "%d %d %d %d", &type, &nBAL, &nb, &lg);
-            //GESTION EMETTEUR
-            if (atoi(pdu) == 0)
-            {
-                printf("        ||||||| Réception des lettres pour la BAL n°%d |||||\n\n", nBAL);
-                message = malloc(lg * sizeof(char));
-                int n = 0;
-                sscanf(pdu, "%d %d %d %d", &type, &nBAL, &nb, &lg);
-                bal = find_BAL(liste, nBAL);
+//Connexion
 
-                while (n != nb)
+
+    //Création socket local
+    if ((sock=socket(AF_INET,SOCK_STREAM,0))==-1)
+    {
+        printf("Echec de la création d'un socket local\n");
+        exit(1);
+    }
+    //Construction adresse socket local | Affectation port et domaine
+    memset((char*)&addr_local, 0 , sizeof(addr_local));
+    addr_local.sin_family=AF_INET;
+    addr_local.sin_addr.s_addr=INADDR_ANY;
+    addr_local.sin_port=port;
+
+    //Bind
+    if (bind(sock,(struct sockaddr *)&addr_local, lg_addr_local)==-1)
+    {
+        printf("Echec du bind.\n");
+        exit(1);
+    }
+    //Check connexions entrantes
+    if (listen(sock,100)<0)
+    {
+        printf("Trop de connexions en attentes, échec de la demande\n");
+        exit(1);
+    }
+    liste=init_BAL();
+    while (1)
+    {
+        if ((sock2=accept(sock,(struct sockaddr*)&addr_distant,&lg_addr_distant))==-1)
+        {
+            printf("Refus de connexion par le serveur\n");
+            exit(1);
+        }
+
+        pdu=malloc(50*sizeof(char));
+        if((lg_pdu=read(sock2,pdu, lg_pdu))<0)
+        {
+            printf("Echec de lecture du PDU entrant\n");
+            exit(1);
+        }
+        sscanf(pdu, "%d %d %d %d", &type, &nBAL, &nb, &lg);
+        //GESTION EMETTEUR
+        if (atoi(pdu)==0)
+        {
+            printf("        ||||||| Réception des lettres pour la BAL n°%d |||||\n\n",nBAL);
+            message=malloc(lg*sizeof(char));
+            int n=0;
+            sscanf(pdu, "%d %d %d %d", &type, &nBAL, &nb, &lg);
+            bal=find_BAL(liste,nBAL);
+
+            while (n!=nb)
+            {
+                message = malloc(lg* sizeof(char));
+                if ((lg_recv = read(sock2, message, lg)) == -1)
                 {
-                    message = malloc(lg * sizeof(char));
-                    if ((lg_recv = read(sock2, message, lg)) == -1)
-                    {
-                        printf("Erreur de lecture\n");
-                        exit(1);
-                    }
-                    if (lg_recv > 0)
-                    {
-                        add_LETTRE(n, lg, bal, message);
-                    }
-                    n++;
+                    printf("Erreur de lecture\n");
+                    exit(1);
                 }
-
-                printBAL(bal, lg);
-            }
-            //GESTION RECEPTEUR
-            else if (atoi(pdu) == 1)
-            {
-                scanf(pdu, "%d %d", &type, &nBAL);
-                printf("        ||||||| Restitution des lettres de la BAL n°%d |||||||\n\n", nBAL);
-                lg = find_BALR(liste, nBAL);
-                if (lg == -1) // Gestion du cas ou la BAL est vide, on envoie un PDU qui sera analysé par le récepteur.
+                if (lg_recv>0)
                 {
-                    printf("        BAL inexistante, PDU=0 pour informer le récepteur\n\n");
-                    sprintf(pdu, "%d %d", lg, nb);
-                    //printf ("PDU à envoyer : %d\n",lg);
-                    int lg_sent = -1;
-                    nb = 1;
-                    if ((lg_sent = write(sock2, pdu, lg_pdu)) == -1) /*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/
-                    {
-                        printf("Echec de l'envoi du PDU  (fonction write en défaut)\n");
-                        exit(1);
-                    }
+                    add_LETTRE(n,lg, bal,message);
                 }
-                else
+                n++;
+            }
+
+            printBAL(bal,lg);
+        }
+        //GESTION RECEPTEUR
+        else if (atoi(pdu)==1)
+        {
+            sscanf(pdu, "%d %d", &type, &nBAL);
+            printf("        ||||||| Restitution des lettres de la BAL n°%d |||||||\n\n",nBAL);
+            lg=find_BALR(liste,nBAL);
+            if (lg==-1) // Gestion du cas ou la BAL est vide, on envoie un PDU qui sera analysé par le récepteur.
+            {
+                printf("        BAL inexistante, PDU=0 pour informer le récepteur\n\n");
+                sprintf(pdu,"%d %d",lg,nb);
+                //printf ("PDU à envoyer : %d\n",lg);
+                int lg_sent=-1;
+                nb=1;
+                if ((lg_sent=write(sock2,pdu,lg_pdu))==-1) /*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/
                 {
-                    bal = find_BAL(liste, nBAL);
-                    bal->l_current = bal->l_first;
-
-                    while (bal->l_current != NULL)
-                    {
-                        lg = bal->l_current->lg;
-                        nb = bal->nb;
-                        sprintf(pdu, "%d %d", lg, nb);
-
-                        if ((lg_sent = write(sock2, pdu, lg_pdu)) == -1) /*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/
-                        {
-                            printf("Echec de l'envoi du PDU Emetteur (fonction write en défaut)\n");
-                            exit(1);
-                        }
-                        message = malloc(lg * sizeof(char));
-                        message = bal->l_current->message;
-
-                        if ((lg_sent = write(sock2, message, lg)) == -1)
-                        {
-                            printf("Erreur lors de l'envoi du message n°%d\n", n);
-                            exit(1);
-                        }
-                        printf("BAL n°%d : Restitution de la lettre n°%d (%d) [", nBAL, n, lg);
-                        afficher_message(message, lg);
-                        bal->l_current = bal->l_current->suiv;
-                        n++;
-                    }
-                    empty(bal);
-                    if ((shutdown(sock2, 2)) == -1)
-                    {
-                        printf("Erreur à la fermeture de la connexion : shutdown\n");
-                        exit(1);
-                    }
+                    printf("Echec de l'envoi du PDU  (fonction write en défaut)\n");
+                    exit(1);
                 }
             }
             else
             {
-                printf("PDU non reconnu, on quitte par sécurité\n");
-                exit(1);
+                bal=find_BAL(liste,nBAL);
+                bal->l_current=bal->l_first;
+
+                while(bal->l_current!=NULL)
+                {
+                    lg=bal->l_current->lg;
+                    nb=bal->nb;
+                    sprintf(pdu,"%d %d",lg,nb);
+
+                    if ((lg_sent=write(sock2,pdu,lg_pdu))==-1) /*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/
+                    {
+                        printf("Echec de l'envoi du PDU Emetteur (fonction write en défaut)\n");
+                        exit(1);
+                    }
+                    message=malloc(lg*sizeof(char));
+                    message=bal->l_current->message;
+
+                    if ((lg_sent=write(sock2,message,lg))==-1)
+                    {
+                        printf("Erreur lors de l'envoi du message n°%d\n",n);
+                        exit(1);
+                    }
+                    printf("BAL n°%d : Restitution de la lettre n°%d (%d) [",nBAL,n,lg);
+                    afficher_message(message,lg);
+                    bal->l_current=bal->l_current->suiv;
+                    n++;
+                }
+                empty(bal);
+                if ((shutdown(sock2 , 2))==-1)
+                {
+                    printf("Erreur à la fermeture de la connexion : shutdown\n");
+                    exit(1);
+                }
             }
-            printLISTE(liste);
-            free(pdu);
-            free(message);
         }
-    }
-void RBAL(int port, char *dest, int nBAL)
+        else
+        {
+            printf("PDU non reconnu, on quitte par sécurité\n");
+            exit(1);
+        }
+        printLISTE(liste);
+        free(pdu);
+        free(message);
+} }  
+void RBAL(int port, char* dest, int nBAL)
+{
+    //Déclarations
+    int sock;
+    struct sockaddr_in addr_distant;
+    int lg_addr_distant = sizeof(addr_distant);
+    struct hostent *hp;
+    char *message; //Penser au free en fin de programme pour libérer l'espace mémoire
+    int envoi = -1;
+    int lg_pdu=50;
+    int lg_recv=-1;
+    int lg;
+    int nb;
+    char *pdu = malloc(lg_pdu*sizeof(char));
+
+//---------------------------------------
+//--------Etablissement connexion--------
+//---------------------------------------
+
+    sprintf(pdu,"1 %d",nBAL);
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        //Déclarations
-        int sock;
-        struct sockaddr_in addr_distant;
-        int lg_addr_distant = sizeof(addr_distant);
-        struct hostent *hp;
-        char *message; //Penser au free en fin de programme pour libérer l'espace mémoire
-        int envoi = -1;
-        int lg_pdu = 50;
-        int lg_recv = -1;
-        int lg;
-        int nb;
-        char *pdu = malloc(lg_pdu * sizeof(char));
-
-        //Etablissement de connexion
-        printf(pdu, "1 %d", nBAL);
-        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-        {
-            printf("Erreur à l'ouverture du Socket Stream");
-            exit(1);
-        }
-
-        //Construction adresse socket distant
-        memset((char *)&addr_distant, 0, sizeof(addr_distant));
-        addr_distant.sin_family = AF_INET; //Internet
-        addr_distant.sin_port = port;      //Numéro de Port
-
-        //Affectation IP
-        if ((hp = gethostbyname(dest)) == NULL)
-        {
-            printf("Erreur de requête IP.\n");
-            exit(1);
-        }
-
-        memcpy((char *)&(addr_distant.sin_addr.s_addr), hp->h_addr, hp->h_length);
-
-        //Demande de connexion
-
-        if (connect(sock, (struct sockaddr *)&addr_distant, sizeof(addr_distant)) == -1)
-        {
-            printf("Erreur lors de la connexion, en attente de la tentative suivante \n");
-            exit(1);
-        }
-        // Envoi du PDU
-        if ((envoi = write(sock, pdu, lg_pdu)) == -1) /*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/
-        {
-            printf("Echec de l'envoi du PDU Emetteur (fonction write en défaut)\n");
-            exit(1);
-        }
-        char *lgmsg = malloc(sizeof(char));
-        nb = 10;
-        int n = 1;
-        lg_recv = 1;
-        printf("             PUITS : Réception du contenu de la BAL n°%d\n", nBAL);
-        printf("____________________________________________________________________\n\n");
-
-        while (n <= nb)
-        {
-            if ((lg_recv = read(sock, lgmsg, lg_pdu)) == -1)
-            {
-                printf("Erreur à la réception du PDU de longueur de message\n");
-                exit(1);
-            }
-            sscanf(lgmsg, "%d %d", &lg, &nb);
-            if (lg == -1)
-            {
-                printf("       ATTENTION : Pas de courrier à récupérer dans la BAL n°%d\n\n", nBAL);
-                exit(0);
-            }
-
-            message = malloc(lg * sizeof(char));
-            if ((lg_recv = read(sock, message, lg)) == -1)
-            {
-                printf("Erreur à la réception du message\n");
-                exit(1);
-            }
-            printf("PUITS : Réception de la lettre n°%d : [", n);
-            afficher_message(message, lg);
-            n++;
-        }
-
-        printf("Fermeture de la Connexion\n");
-        //Ciao le socket
-        if (close(sock) == -1)
-        {
-            printf("Impossible de fermer le socket");
-            exit(1);
-        }
+        printf("Erreur à l'ouverture du Socket Stream");
+        exit(1);
     }
+
+    //Construction adresse socket distant
+    memset((char *) &addr_distant, 0, sizeof(addr_distant));
+    addr_distant.sin_family = AF_INET;  //Internet
+    addr_distant.sin_port = port;       //Numéro de Port
+
+    //Affectation IP
+    if ((hp = gethostbyname(dest)) == NULL) {
+        printf("Erreur de requête IP.\n");
+        exit(1);
+    }
+
+    memcpy((char *) &(addr_distant.sin_addr.s_addr), hp->h_addr, hp->h_length);
+
+    //Demande de connexion
+
+    if (connect(sock, (struct sockaddr *) &addr_distant, sizeof(addr_distant)) == -1) {
+        printf("Erreur lors de la connexion, en attente de la tentative suivante \n");
+        exit(1);
+    }
+
+//-----------------------------------------
+//----------------Envoi PDU----------------
+//-----------------------------------------
+
+    if ((envoi = write(sock, pdu, lg_pdu)) == -1) /*,0,(struct sockaddr*)&addr_distant,lg_addr_distant)*/
+    {
+        printf("Echec de l'envoi du PDU Emetteur (fonction write en défaut)\n");
+        exit(1);
+    }
+    char*lgmsg=malloc(maxsize* sizeof(char));
+    nb=10;
+    int n=1;
+    lg_recv=1;
+    printf("             PUITS : Réception du contenu de la BAL n°%d\n",nBAL);
+    printf("____________________________________________________________________\n\n");
+
+    while(n<=nb)
+    {
+        if ((lg_recv=read(sock,lgmsg,lg_pdu))==-1)
+        {
+            printf("Erreur à la réception du PDU de longueur de message\n");
+            exit(1);
+        }
+        sscanf(lgmsg,"%d %d", &lg , &nb);
+        if (lg==-1)
+        {
+            printf("       ATTENTION : Pas de courrier à récupérer dans la BAL n°%d\n\n",nBAL);
+            exit(0);
+        }
+
+        message=malloc(lg*sizeof(char));
+        if ((lg_recv=read(sock,message,lg))==-1)
+        {
+            printf("Erreur à la réception du message\n");
+            exit(1);
+        }
+        printf("PUITS : Réception de la lettre n°%d : [",n);
+        afficher_message(message,lg);
+        n++;
+    }
+
+    printf("Fermeture de la Connexion\n");
+    //Ciao le socket
+    if(close(sock)==-1)
+    {
+        printf("Impossible de fermer le socket");
+        exit(1);
+    }
+}
 
 #endif
 
