@@ -61,9 +61,7 @@ void empty(BAL *bal);
 void EBAL(int port, char *dest, int nb_message, int lg_msg, int nBAL);
 void SBAL(int port, char *host);
 void RBAL(int port, char *dest, int nBAL);
-/*---------------------------------------------------------
-  ---------------------- Gestion BAL ----------------------
-  ---------------------------------------------------------*/
+
 LISTE_BAL *init_BAL()
 {
     LISTE_BAL *liste = (LISTE_BAL *)malloc(sizeof(struct LISTE_BAL));
@@ -85,9 +83,7 @@ void printLISTE(struct LISTE_BAL *liste)
     }
     printf("              __________________________________________\n\n");
 }
-/*---------------------------------------------------------
-  ----------- Afficher le contenu d'une BAL ---------------
-  ---------------------------------------------------------*/
+
 void printBAL(BAL *bal, int lg)
 {
     printf("Contenu de la BAL n°%d qui contient %d lettres \n", bal->num, bal->nb);
@@ -103,9 +99,7 @@ void printBAL(BAL *bal, int lg)
     }
     printf("\n\n");
 }
-/*---------------------------------------------------------
-  -------------------- Ajouter une BAL --------------------
-  ---------------------------------------------------------*/
+
 void add_BAL(int n, LISTE_BAL *liste)
 {
     BAL *nouv = malloc(sizeof(struct BAL));
@@ -128,9 +122,7 @@ void add_BAL(int n, LISTE_BAL *liste)
     }
     liste->nb++;
 }
-/*---------------------------------------------------------
-  ---------------------- Numero  BAL ----------------------
-  ---------------------------------------------------------*/
+
 
 BAL *find_BAL(LISTE_BAL *liste, int num)
 {
@@ -185,9 +177,7 @@ BAL *find_BAL(LISTE_BAL *liste, int num)
     return bal;
 }
 
-/*--------------------------------------------------------
-------------------- Ajouter num fin BAL ------------------
----------------------------------------------------------*/
+
 void add_LETTRE(int n, int lg, BAL *bal, char *mess)
     {
         bal->nb = (bal->nb) + 1;
@@ -214,9 +204,6 @@ void add_LETTRE(int n, int lg, BAL *bal, char *mess)
         for (int i = 0; i < lg; i++)
             nouv->message[i] = mess[i];
     }
-/*---------------------------------------------------------
-  --- Detruire liste en fin d'utilisation de BAL ----------
-  ---------------------------------------------------------*/
 void empty(BAL * bal)
     {
         bal->l_current = bal->l_first;
